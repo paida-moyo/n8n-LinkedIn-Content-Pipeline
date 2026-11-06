@@ -1,0 +1,25 @@
+{
+  "_note": "Invented sample data for documentation. It shows what each output branch receives for the input in input-example.json.",
+  "model_text_path": "output[0].content[0].text",
+  "sheet_row_after_update": {
+    "Day": "1",
+    "Date Scheduled": "06/11/2026",
+    "Topic": "Write the handoff note before you log off",
+    "Angle": "Common mistake fix: handoffs that only live in one person's head",
+    "Status": "drafted",
+    "Draft": "Most handoffs fail quietly. Nobody notices until the person who knew everything is offline and a client is waiting on an answer.\n\nThe fix is small. Before you log off, write three lines somewhere the team can see them: what is finished, what is still open, and where the next person should look first. It does not need a template or a meeting.\n\nA good note names the file, the person, or the link, not the idea. \"Check the invoice thread\" is useful. \"Follow up on billing\" sends someone searching.\n\nThe part people skip is the second line. Finished work is easy to describe. The open items are the ones that live only in your head, and those are the ones that stall a project when you are not around.\n\nTry it for one week on one project and see whether the questions in your inbox change.\n\nWhat is the one thing on your current project that only you know right now?\n\n#RemoteWork #Operations #VirtualAssistant #Productivity",
+    "Sheet_Updated": "2026-11-06T01:00:04.512+00:00"
+  },
+  "notion_page": {
+    "title": "Write the handoff note before you log off",
+    "Angle": "Common mistake fix: handoffs that only live in one person's head",
+    "Day": 1,
+    "Status": "drafted",
+    "Draft": "(same text as the sheet row)"
+  },
+  "email": {
+    "to": "YOUR_EMAIL@example.com",
+    "subject": "LinkedIn Draft Ready, Day 1: Write the handoff note before you log off",
+    "body": "Day, topic, the draft text, and links to the sheet and the Notion database."
+  }
+}

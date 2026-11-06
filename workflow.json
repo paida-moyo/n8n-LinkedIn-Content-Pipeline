@@ -1,0 +1,488 @@
+{
+  "name": "LinkedIn Content Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 1
+            },
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        -48
+      ],
+      "id": "e613e264-18e8-43d0-bad0-9fd66d794b53",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Content",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "idea"
+            },
+            {
+              "lookupColumn": "Date Scheduled",
+              "lookupValue": "={{ $today.toFormat('dd/MM/yyyy') }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        320,
+        -48
+      ],
+      "id": "dd0ad754-06a9-40be-89a9-085dbbdd2809",
+      "name": "Read Next Topic",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f994e8a8-794d-4fc5-a107-af0d7e1d92a6",
+              "leftValue": "={{ $json.Topic }}",
+              "rightValue": "idea",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "5c8f4f04-0b61-4d24-b920-bba5d19054d0",
+              "leftValue": "={{ $json.Status }}",
+              "rightValue": "idea",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        544,
+        -48
+      ],
+      "id": "66cf9e36-5365-43e9-9b06-535307420f6f",
+      "name": "HasTopic"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        832,
+        48
+      ],
+      "id": "22dc7a0e-5dcc-4dcc-b3af-bc80df329b26",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Content",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Draft": "={{ $json.output[0].content[0].text }}",
+            "Status": "drafted",
+            "Sheet_Updated": "={{ $now.toISO() }}",
+            "Topic": "={{ $('HasTopic').item.json.Topic }}",
+            "Angle": "={{ $('HasTopic').item.json.Angle }}",
+            "Day": "={{ $('Read Next Topic').item.json.Day }}",
+            "Date Scheduled": "={{ $('Read Next Topic').item.json[\"Date Scheduled\"] }}",
+            "Timestamp": "={{ $('Read Next Topic').item.json.Timestamp }}"
+          },
+          "matchingColumns": [
+            "Day"
+          ],
+          "schema": [
+            {
+              "id": "Day",
+              "displayName": "Day",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Date Scheduled",
+              "displayName": "Date Scheduled",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Topic",
+              "displayName": "Topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Angle",
+              "displayName": "Angle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Source_URL",
+              "displayName": "Source_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Draft",
+              "displayName": "Draft",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Notion_URL",
+              "displayName": "Notion_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Sheet_Updated",
+              "displayName": "Sheet_Updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        -336
+      ],
+      "id": "03e9975e-2fe5-4cdc-867f-fb14b2617ef6",
+      "name": "UpdateSheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=You are a LinkedIn ghostwriter for an Executive VA and AI Workflow Specialist.\n\nWrite a LinkedIn post about: {{ $('Read Next Topic').item.json.Topic }}\n\nGuidelines:\n- Hook in the first line (no \"I\" as first word)\n- 150–250 words\n- Conversational but professional tone\n- End with 1 reflective question or CTA\n- No hashtags in the body (add 3–5 at the end only)\n\nReturn only the post text. No preamble, no explanation."
+            },
+            {
+              "content": "=Write a LinkedIn post for Day {{ $json.Day }}. Topic: {{ $json.Topic }} Angle: {{ $json.Angle }} Source URL: {{ $json.Source_URL }}\nFollow the system prompt exactly. \n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 800,
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        768,
+        -144
+      ],
+      "id": "4eb0bb82-d27e-47e6-9da3-2f61b1c36bb2",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "name": "YOUR_OPENAI_CREDENTIAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "YOUR_NOTION_DATABASE_ID",
+          "mode": "id"
+        },
+        "title": "={{ $('HasTopic').item.json.Topic }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Angle|rich_text",
+              "textContent": "={{ $('HasTopic').item.json.Angle }}"
+            },
+            {
+              "key": "Day|number",
+              "numberValue": "={{ $('HasTopic').item.json.Day }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "drafted"
+            },
+            {
+              "key": "Draft|rich_text",
+              "textContent": "={{ $json.output[0].content[0].text }}"
+            }
+          ]
+        },
+        "blockUi": {
+          "blockValues": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        -144
+      ],
+      "id": "dea09f09-d572-4af5-848f-8426f4b25602",
+      "name": "ArchiveToNotion",
+      "credentials": {
+        "notionApi": {
+          "name": "YOUR_NOTION_CREDENTIAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@example.com",
+        "subject": "=LinkedIn Draft Ready — Day {{ $('Read Next Topic').item.json.Day }}: {{ $('Read Next Topic').item.json.Topic }}",
+        "message": "=<h2>Your LinkedIn Draft is Ready</h2>  <p><strong>Day:</strong> {{ $('Read Next Topic').item.json.Day }}</p> <p><strong>Topic:</strong> {{ $('Read Next Topic').item.json.Topic }}</p>  <hr/>  <h3>Draft</h3> <p>{{ $json.output[0].content[0].text }}</p>  <hr/>  <h3>Links</h3> <p>   📊 <a href=\"https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID\">View in Google Sheets</a> </p> <p>   📄 <a href=\"https://www.notion.so/YOUR_NOTION_DATABASE_URL\">View in Notion</a> </p>  <hr/> <p><em>Review the draft, edit and post when ready.</em></p>",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "YOUR_NAME",
+          "replyToSenderOnly": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        48
+      ],
+      "id": "fde3b398-aec8-4905-8db1-5e64adbf799f",
+      "name": "Send a message",
+      "credentials": {
+        "gmailOAuth2": {
+          "name": "YOUR_GMAIL_CREDENTIAL"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Next Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Next Topic": {
+      "main": [
+        [
+          {
+            "node": "HasTopic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HasTopic": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UpdateSheet": {
+      "main": [
+        []
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "UpdateSheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ArchiveToNotion",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ArchiveToNotion": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "YOUR_ERROR_WORKFLOW_ID",
+    "executionTimeout": -1
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}

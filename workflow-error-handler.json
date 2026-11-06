@@ -1,0 +1,580 @@
+{
+  "name": "LinkedIn Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9c0c7b30-1356-450b-bd6e-3ddae62dfe73",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b3d07f0b-6612-4d51-90c3-e543d8057b5f",
+              "name": "failed_node",
+              "value": "={{ $json.execution.lastNodeExecuted }}",
+              "type": "string"
+            },
+            {
+              "id": "8ce9e32e-284f-4b2d-bb22-22199a9fb76d",
+              "name": "error_message",
+              "value": "={{ $json.execution.error.message }}",
+              "type": "string"
+            },
+            {
+              "id": "903c2b99-0a87-447f-a51e-55cb830cc1ee",
+              "name": "execution_url",
+              "value": "=https://YOUR_N8N_HOST/workflow/{{ $json.workflow.id }}/executions/{{ $json.execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "249d56e2-5369-4583-994c-db24065d610b",
+              "name": "affected_day",
+              "value": "={{ $json.execution.error.context?.Day ?? 'unknown' }}",
+              "type": "string"
+            },
+            {
+              "id": "f8643efc-4893-473e-8c58-9ea523810296",
+              "name": "workflow_name",
+              "value": "={{ $json.workflow.name }}",
+              "type": "string"
+            },
+            {
+              "id": "96a88a13-4557-4d83-97a0-b08a378cc7e5",
+              "name": "http_code",
+              "value": "={{ $json.execution.error.httpCode }}",
+              "type": "string"
+            },
+            {
+              "id": "ceb5ea9b-b1cc-492f-a0b0-314be44063c8",
+              "name": "Timestamp",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "dc428e0f-4d0c-43e2-800c-15090cb088bb",
+      "name": "ExtractContext"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a288bb0d-f9be-43b7-9a41-efe0562a147f",
+              "leftValue": "={{ $json.http_code }} ",
+              "rightValue": 429,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "ac2b4aab-34ba-49b2-a3a3-3b3ca75f4c06",
+              "leftValue": "={{ $json.http_code }}",
+              "rightValue": 500,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "d2bb25e6-f5a6-4bef-a9ec-8551faef61aa",
+              "leftValue": "={{ $json.http_code }}",
+              "rightValue": 501,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "71ec9111-bbb8-4e7f-94dc-2ae5ce15ee00",
+      "name": "ClassifySeverity"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "45a36f70-d32f-4e4a-a7f7-5a24537539f8",
+              "name": "severity",
+              "value": "transient",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        -96
+      ],
+      "id": "4e9c1d47-578a-4de9-a6d4-8d91d9b652c2",
+      "name": "SetTransient"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b5f50cdf-87b7-4a15-9111-1caea496ddb0",
+              "name": "severity",
+              "value": "hard",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        96
+      ],
+      "id": "921d2ae6-0f85-4e04-a5a1-e69cd682f404",
+      "name": "SetHard"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Errors",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ new Date().toISOString() }}",
+            "workflow": "={{ $('ExtractContext').item.json.workflow_name }}",
+            "failed_node": "={{ $('ExtractContext').item.json.failed_node }}",
+            "error_message": "={{ $('ExtractContext').item.json.error_message }}",
+            "http_code": "={{ $('ExtractContext').item.json.http_code }}",
+            "execution_url": "={{ $('ExtractContext').item.json.execution_url }}",
+            "affected_day": "={{ $('ExtractContext').item.json.affected_day }}",
+            "severity": "={{ $json.severity }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "workflow",
+              "displayName": "workflow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "failed_node",
+              "displayName": "failed_node",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "http_code",
+              "displayName": "http_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "execution_url",
+              "displayName": "execution_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "affected_day",
+              "displayName": "affected_day",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "severity",
+              "displayName": "severity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        -16
+      ],
+      "id": "7a0eeacf-4ce3-40a7-89fd-89ce97483ee7",
+      "name": "LogError",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@example.com",
+        "subject": "=[N8N FAIL] {{ $('LogError').item.json.severity }}: {{ $('LogError').item.json.workflow }} — Node: {{ $('LogError').item.json.failed_node }}",
+        "message": "=<h2 style=\"color:#c0392b;\">⚠️ Workflow Failure Alert</h2>\n\n<table style=\"border-collapse:collapse; width:100%; font-family:Arial, sans-serif; font-size:14px;\">\n  <tr style=\"background:#f2f2f2;\">\n    <td style=\"padding:8px; border:1px solid #ddd;\"><strong>Workflow</strong></td>\n    <td style=\"padding:8px; border:1px solid #ddd;\">{{ $('LogError').item.json.workflow }}</td>\n  </tr>\n  <tr>\n    <td style=\"padding:8px; border:1px solid #ddd;\"><strong>Failed Node</strong></td>\n    <td style=\"padding:8px; border:1px solid #ddd;\">{{ $('LogError').item.json.failed_node }}</td>\n  </tr>\n  <tr style=\"background:#f2f2f2;\">\n    <td style=\"padding:8px; border:1px solid #ddd;\"><strong>Error Message</strong></td>\n    <td style=\"padding:8px; border:1px solid #ddd;\">{{ $('LogError').item.json.error_message }}</td>\n  </tr>\n  <tr>\n    <td style=\"padding:8px; border:1px solid #ddd;\"><strong>HTTP Code</strong></td>\n    <td style=\"padding:8px; border:1px solid #ddd;\">{{ $('ExtractContext').item.json.http_code }}</td>\n  </tr>\n  <tr style=\"background:#f2f2f2;\">\n    <td style=\"padding:8px; border:1px solid #ddd;\"><strong>Severity</strong></td>\n    <td style=\"padding:8px; border:1px solid #ddd;\">{{ $('LogError').item.json.severity }}</td>\n  </tr>\n  <tr>\n    <td style=\"padding:8px; border:1px solid #ddd;\"><strong>Affected Day</strong></td>\n    <td style=\"padding:8px; border:1px solid #ddd;\">{{ $('LogError').item.json.affected_day }}</td>\n  </tr>\n  <tr style=\"background:#f2f2f2;\">\n    <td style=\"padding:8px; border:1px solid #ddd;\"><strong>Execution URL</strong></td>\n    <td style=\"padding:8px; border:1px solid #ddd;\">\n      <a href=\"{{ $('LogError').item.json.execution_url }}\">View Execution in n8n</a>\n    </td>\n  </tr>\n</table>\n\n<p style=\"margin-top:20px; font-size:12px; color:#888;\">\n  This alert was generated automatically by Workflow B (LinkedIn Error Handler).\n</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1248,
+        -16
+      ],
+      "id": "3502b428-d95c-4441-8c02-fa43d84dc8a0",
+      "name": "EmailAlert",
+      "credentials": {
+        "gmailOAuth2": {
+          "name": "YOUR_GMAIL_CREDENTIAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Content",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Day": "={{ $json.affected_day }}",
+            "Status": "error"
+          },
+          "matchingColumns": [
+            "Day"
+          ],
+          "schema": [
+            {
+              "id": "Day",
+              "displayName": "Day",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Date Scheduled",
+              "displayName": "Date Scheduled",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Topic",
+              "displayName": "Topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Angle",
+              "displayName": "Angle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Source_URL",
+              "displayName": "Source_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Draft",
+              "displayName": "Draft",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Notion_URL",
+              "displayName": "Notion_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Sheet_Updated",
+              "displayName": "Sheet_Updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1040,
+        -16
+      ],
+      "id": "917db853-b80f-4814-b090-eb4974341056",
+      "name": "UpdateContentWithError",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "name": "YOUR_GOOGLE_SHEETS_CREDENTIAL"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "ExtractContext",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ExtractContext": {
+      "main": [
+        [
+          {
+            "node": "ClassifySeverity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ClassifySeverity": {
+      "main": [
+        [
+          {
+            "node": "SetTransient",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SetHard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SetTransient": {
+      "main": [
+        [
+          {
+            "node": "LogError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SetHard": {
+      "main": [
+        [
+          {
+            "node": "LogError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LogError": {
+      "main": [
+        [
+          {
+            "node": "UpdateContentWithError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UpdateContentWithError": {
+      "main": [
+        [
+          {
+            "node": "EmailAlert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}
