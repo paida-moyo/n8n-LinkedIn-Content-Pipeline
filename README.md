@@ -5,8 +5,6 @@ A scheduled n8n workflow that takes the day's topic from a Google Sheets content
 <img width="1043" height="587" alt="workflow_canvas" src="https://github.com/user-attachments/assets/7269c0a4-f3e4-4b46-9e28-dc9c9100ff3f" />
 
 
-![n8n canvas for the content pipeline](assets/workflow-canvas.png)
-
 ## What I built
 
 Posting on LinkedIn regularly comes with a routine part: working out what today's post is about, getting a first draft down, and keeping track of what has been drafted and what has not. This workflow handles that routine part. The content calendar lives in a Google Sheet where each row has a topic, an angle, a scheduled date, and a status.
@@ -116,9 +114,10 @@ What is the one thing on your current project that only you know right now?
 
 #RemoteWork #Operations #VirtualAssistant #Productivity
 ```
+<img width="1280" height="595" alt="input-example" src="https://github.com/user-attachments/assets/2c6b9eec-c470-453b-98bc-e87e8e1d044e" />
 
-![Example input row](assets/input-example.png)
-![Example draft output](assets/output-example.png)
+<img width="1274" height="572" alt="output-example" src="https://github.com/user-attachments/assets/d24c07a9-36f4-4aee-9650-e46c77ae37a8" />
+
 
 ## Customizing it
 
@@ -146,8 +145,4 @@ This project shows a small, complete automation: a trigger, a lookup, a branch f
 
 ## Author
 
-Paidamoyo, Clarity Desk ("Turning Chaos into Clarity")
-
-- LinkedIn: YOUR_LINKEDIN_URL
-- Upwork: YOUR_UPWORK_URL
-- Website: YOUR_WEBSITE_URL
+Paidamoyo
