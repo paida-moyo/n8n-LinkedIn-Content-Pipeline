@@ -2,6 +2,9 @@
 
 A scheduled n8n workflow that takes the day's topic from a Google Sheets content calendar, drafts a LinkedIn post with an OpenAI model, files the draft in Notion and the sheet, and emails it to me for review. A second workflow logs any failure and sends an alert.
 
+<img width="1043" height="587" alt="workflow_canvas" src="https://github.com/user-attachments/assets/7269c0a4-f3e4-4b46-9e28-dc9c9100ff3f" />
+
+
 ![n8n canvas for the content pipeline](assets/workflow-canvas.png)
 
 ## What I built
